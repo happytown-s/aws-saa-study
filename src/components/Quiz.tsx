@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { Question, QuizResult, QuizMode } from '../types';
+import type { Lang } from '../i18n';
+import { t } from '../i18n';
 import examData from '../data/aws-saa-exam.json';
 
 const categories = [...new Set((examData as Question[]).map(q => q.category))].sort();
 
-export default function Quiz({ results, addResult, modeFilter }: { results: QuizResult[]; addResult: (r: QuizResult) => void; modeFilter: QuizMode | null }) {
+export default function Quiz({ results, addResult, modeFilter, lang }: { results: QuizResult[]; addResult: (r: QuizResult) => void; modeFilter: QuizMode | null; lang: Lang }) {
   const [mode, setMode] = useState<QuizMode>(modeFilter === 'exam' ? 'exam' : 'drill');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -95,18 +97,18 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
     return (
       <div className="space-y-6">
         <div className="bg-dark-surface rounded-xl p-6 border border-dark-border">
-          <h2 className="text-lg font-semibold text-gold mb-1">Quiz Setup</h2>
-          <p className="text-sm text-dark-muted mb-4">AWS Solutions Architect Associate (SAA-C03) Practice</p>
+          <h2 className="text-lg font-semibold text-gold mb-1">{t(lang, 'quiz.setup.title')}</h2>
+          <p className="text-sm text-dark-muted mb-4">{t(lang, 'quiz.setup.subtitle')}</p>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm text-dark-muted mb-2">Category</label>
+              <label className="block text-sm text-dark-muted mb-2">{t(lang, 'quiz.setup.category')}</label>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setSelectedCategory('All')}
                   className={`px-3 py-1.5 rounded-lg text-sm ${selectedCategory === 'All' ? 'bg-gold text-dark-bg' : 'bg-dark-card text-dark-text'}`}
                 >
-                  All ({allQuestions.length})
+                  {t(lang, 'quiz.setup.all')} ({allQuestions.length})
                 </button>
                 {categories.map(cat => (
                   <button
@@ -122,12 +124,12 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
 
             {!modeFilter && (
               <div>
-                <label className="block text-sm text-dark-muted mb-2">Mode</label>
+                <label className="block text-sm text-dark-muted mb-2">{t(lang, 'quiz.setup.mode')}</label>
                 <div className="flex gap-2 flex-wrap">
                   {([
-                    { key: 'drill' as QuizMode, label: 'Drill (10 Qs)', desc: 'Quick practice' },
-                    { key: 'exam' as QuizMode, label: 'Exam (65 Qs)', desc: 'Full simulation' },
-                    { key: 'review' as QuizMode, label: 'Review (20 Qs)', desc: 'Wrong answers' },
+                    { key: 'drill' as QuizMode, label: t(lang, 'quiz.mode.drill') },
+                    { key: 'exam' as QuizMode, label: t(lang, 'quiz.mode.exam') },
+                    { key: 'review' as QuizMode, label: t(lang, 'quiz.mode.review') },
                   ]).map(m => (
                     <button
                       key={m.key}
@@ -146,17 +148,17 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
             onClick={startQuiz}
             className="mt-6 w-full py-3 bg-gold hover:bg-gold-dark text-dark-bg font-semibold rounded-xl transition-colors"
           >
-            Start {modeFilter === 'exam' ? 'Practice Exam' : 'Quiz'} ({(() => {
+            {modeFilter === 'exam' ? t(lang, 'quiz.start.exam') : t(lang, 'quiz.start')} ({(() => {
               const filtered = selectedCategory === 'All' ? allQuestions : allQuestions.filter(q => q.category === selectedCategory);
               const count = mode === 'exam' ? Math.min(65, filtered.length) : mode === 'review' ? Math.min(20, filtered.length) : Math.min(10, filtered.length);
               return count;
-            })()} questions)
+            })()} {t(lang, 'quiz.questions')})
           </button>
         </div>
 
         {/* Category accuracy */}
         <div className="bg-dark-surface rounded-xl p-6 border border-dark-border">
-          <h3 className="text-sm font-semibold text-dark-muted mb-3">Category Performance</h3>
+          <h3 className="text-sm font-semibold text-dark-muted mb-3">{t(lang, 'quiz.category.perf')}</h3>
           <div className="space-y-2">
             {categories.map(cat => {
               const catResults = results.filter(r => r.category === cat);
@@ -172,7 +174,7 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
                 </div>
               );
             })}
-            {results.length === 0 && <p className="text-sm text-dark-muted">No quiz results yet.</p>}
+            {results.length === 0 && <p className="text-sm text-dark-muted">{t(lang, 'quiz.no.results')}</p>}
           </div>
         </div>
       </div>
@@ -189,10 +191,10 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
           <span className="text-sm text-gold">Q{currentIndex + 1}/{questions.length}</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-dark-muted">Score: {score.correct}/{score.total}</span>
+          <span className="text-sm text-dark-muted">{t(lang, 'quiz.score')}: {score.correct}/{score.total}</span>
           {!showResult && (
             <button onClick={finishQuiz} className="text-xs text-dark-muted hover:text-dark-text">
-              End Quiz
+              {t(lang, 'quiz.end')}
             </button>
           )}
         </div>
@@ -215,7 +217,7 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
                 onClick={() => setShowHint(prev => !prev)}
                 className="px-3 py-1.5 rounded-lg text-sm bg-blue-900/30 hover:bg-blue-900/50 text-blue-400 border border-blue-800/50 transition-colors"
               >
-                {showHint ? 'Hide Hint' : 'Hint'}
+                {showHint ? t(lang, 'quiz.hide.hint') : t(lang, 'quiz.hint')}
               </button>
             </div>
           )}
@@ -223,7 +225,7 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
           {showHint && currentQuestion.hint && (
             <div className="bg-blue-900/20 rounded-lg p-4 border border-blue-800/40">
               <p className="text-sm">
-                <span className="font-semibold text-blue-400">Hint: </span>
+                <span className="font-semibold text-blue-400">{t(lang, 'quiz.hint.label')}</span>
                 <span className="text-dark-text">{currentQuestion.hint}</span>
               </p>
             </div>
@@ -255,7 +257,7 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
           {showExplanation && (
             <div className="bg-dark-card rounded-lg p-4 border border-gold/30">
               <p className="text-sm">
-                <span className="font-semibold text-gold">Explanation: </span>
+                <span className="font-semibold text-gold">{t(lang, 'quiz.explanation')}</span>
                 <span className="text-dark-text">{currentQuestion.explanation}</span>
               </p>
             </div>
@@ -266,7 +268,7 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
               onClick={nextQuestion}
               className="w-full py-3 bg-gold hover:bg-gold-dark text-dark-bg font-semibold rounded-xl transition-colors"
             >
-              {isLastQuestion ? 'View Results' : 'Next Question'}
+              {isLastQuestion ? t(lang, 'quiz.view.results') : t(lang, 'quiz.next')}
             </button>
           )}
         </div>
@@ -277,28 +279,28 @@ export default function Quiz({ results, addResult, modeFilter }: { results: Quiz
           </div>
           <p className="text-lg">
             {score.correct / score.total >= 0.9
-              ? 'Outstanding! You are well prepared for the SAA exam!'
+              ? t(lang, 'quiz.result.outstanding')
               : score.correct / score.total >= 0.75
-                ? 'Good progress! Keep studying to reach the passing score.'
+                ? t(lang, 'quiz.result.good')
                 : score.correct / score.total >= 0.6
-                  ? 'Decent start. Review the explanations carefully.'
-                  : 'Keep practicing! Focus on your weak areas.'}
+                  ? t(lang, 'quiz.result.decent')
+                  : t(lang, 'quiz.result.keep')}
           </p>
           <p className="text-sm text-dark-muted">
-            Passing score for SAA-C03 is 720/1000. Your estimated score: {Math.round((score.correct / score.total) * 1000)}
+            {t(lang, 'quiz.passing.score')}{Math.round((score.correct / score.total) * 1000)}
           </p>
           <div className="flex gap-3 justify-center pt-4">
             <button
               onClick={() => setQuizActive(false)}
               className="px-6 py-3 bg-dark-card hover:bg-dark-border text-dark-text rounded-xl transition-colors"
             >
-              Back to Setup
+              {t(lang, 'quiz.back.setup')}
             </button>
             <button
               onClick={startQuiz}
               className="px-6 py-3 bg-gold hover:bg-gold-dark text-dark-bg font-semibold rounded-xl transition-colors"
             >
-              Try Again
+              {t(lang, 'quiz.try.again')}
             </button>
           </div>
         </div>
