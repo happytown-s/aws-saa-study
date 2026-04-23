@@ -1,0 +1,9 @@
+{
+  "name": "TOEIC 800+ Study",
+  "short_name": "TOEIC 800+",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#1a1a2e",
+  "description": "Advanced TOEIC practice for 800+ scores"
+}
